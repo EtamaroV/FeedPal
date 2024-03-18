@@ -14,8 +14,8 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        "name": "FeedPal",
-        "short_name": "FeedPal",
+        "name": "FeedPal!",
+        "short_name": "FeedPal!",
         "icons": [
           {
             "src": "/pwa-192x192.png",
