@@ -15,14 +15,14 @@ var dropped = false
 
 
 <template>
-    <div class="Splash-Bg">
+    <div class="Splash-Bg" ref="SplashBGANDALL">
         <IconSplashLemon class="Splash-Icon"/>
         <TextLogo class="Splash-Text"/>
 
         <div class="Splash-Loader">
-            <div class="Splash-drops"  :class="{ 'Splash-hide': !isLoading }">
+            <div class="Splash-drops" ref="AllSplashDrop" :class="{ 'Splash-hide': !isLoading }">
                 <div class="Splash-drop1"></div>
-                <div class="Splash-drop2" ref="XD"></div>  
+                <div class="Splash-drop2" ref="SplashDrop"></div>  
             </div>
 
             <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
@@ -35,15 +35,36 @@ var dropped = false
             </svg>
             
         </div>
+
+        <div class="Splash-FadeBall" ref="SplashFadeBall"></div>
     </div>
+
+    
 </template>
 
 <script>
 import { gsap } from 'gsap';
-
 export default { 
   mounted() { 
-    gsap.to(this.$refs.XD, { duration: 1.2, delay:0.5, ease: "power4.in", bottom: 'calc( -50vh + 40px )', repeat: -1})
+    var SplashFadeBallSize = "vw"
+    if(window.innerHeight > window.innerWidth){
+      SplashFadeBallSize = "vh"
+    }
+    var splashAnim = gsap.timeline({repeat: 0, repeatDelay: 1});
+    splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:0.5, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
+      onComplete: ()=>{
+        if(window.innerHeight > window.innerWidth){
+          SplashFadeBallSize = "vh"
+        } else {
+          SplashFadeBallSize = "vw"
+        }
+        console.log(SplashFadeBallSize)
+      }})
+    
+    splashAnim.to(this.$refs.AllSplashDrop, { duration: 0, delay:0, display: 'none'})
+    splashAnim.to(this.$refs.SplashFadeBall, { duration: 0.5, delay:0, ease: "power1.in", width: 'calc(200'+ SplashFadeBallSize +' + 50px)', height: 'calc(200'+ SplashFadeBallSize +' + 50px)', bottom: '-100'+SplashFadeBallSize})
+    splashAnim.to(this.$refs.SplashFadeBall, { duration: 0.1, delay:0, ease: "none", width: '100%', height: '100%', bottom: '0', borderRadius: '0'})
+    splashAnim.to(this.$refs.SplashBGANDALL, { duration: 0.5, delay:0, opacity: 0})
   }
 }
 
@@ -64,20 +85,17 @@ export default {
 }
 .Splash-Icon {
     align-self: center;
-    z-index: 10;
+    z-index: 3;
 }
 .Splash-Text {
     position: fixed;
     bottom: 62px;
-}
-
-body {
-    background: #FFD84F;
+    z-index: 1;
 }
 
 .Splash-Loader {
     position: fixed;
-    z-index: 5;
+    z-index: 2;
 }
 
 .Splash-drops {
@@ -102,8 +120,12 @@ body {
     right: 0;
     bottom: 0;
     margin: auto;
-    background-color: #ffffff;
+    background-color: var(--color-background);
 
+}
+
+.Splash-drop2 {
+  bottom: 6px;
 }
 
 .Splash-drop1 {
@@ -146,4 +168,15 @@ body {
   }
 }
 
+.Splash-FadeBall {
+  width: 40px;
+  height: 40px;
+  z-index: 4;
+  position: fixed;
+  background-color: var(--color-background);
+
+  border-radius: 100%;
+
+  bottom: -40px;
+}
 </style>
