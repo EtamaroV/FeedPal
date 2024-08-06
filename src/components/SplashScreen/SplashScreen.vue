@@ -60,7 +60,7 @@ export default {
     if (navigator.onLine) {
       console.log("online");
       nowOnline = true
-      this.show_Nointernet = true
+      this.show_Nointernet = false
     } else {
       console.log("offline");
       nowOnline = false
@@ -82,7 +82,7 @@ export default {
     var splashAnim = gsap.timeline({repeat: -1, repeatDelay: 0.2});
     splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:1.0, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
       onComplete: ()=>{
-        if (!nowOnline) {
+        if (nowOnline) {
           if(window.innerHeight > window.innerWidth){
             SplashFadeBallSize = "vh"
           } else {
@@ -98,7 +98,7 @@ export default {
           if (navigator.onLine) {
             console.log("online");
             nowOnline = true
-            this.show_Nointernet = true
+            this.show_Nointernet = false
           }
           
         }
