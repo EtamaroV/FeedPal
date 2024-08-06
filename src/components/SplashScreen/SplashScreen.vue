@@ -2,22 +2,26 @@
 import IconSplashLemon from '@/components/icons/IconSplashLemon.vue';
 import TextLogo from '@/components/icons/TextLogo.vue';
 
-
-
 var isLoading = true
 var finishLoad = false
 var dropped = false
-
-
-
 
 </script>
 
 
 <template>
+    <v-snackbar
+      v-model="show_Nointernet"
+      :timeout="-1"
+      color="#222222"
+      location="top"
+      style="padding-top: env(safe-area-inset-top);"
+    >
+    Oops! No Internet Connection.
+    </v-snackbar>
     <div class="Splash-Bg" ref="SplashBGANDALL">
-        <IconSplashLemon class="Splash-Icon"/>
-        <TextLogo class="Splash-Text"/>
+        <IconSplashLemon class="Splash-Icon" ref="SplashIcon"/>
+        <TextLogo class="Splash-Text" ref="SplashText"/>
 
         <div class="Splash-Loader">
             <div class="Splash-drops" ref="AllSplashDrop" :class="{ 'Splash-hide': !isLoading }">
@@ -45,32 +49,75 @@ var dropped = false
 <script>
 import { gsap } from 'gsap';
 export default { 
+  data() {
+    return {
+      show_Nointernet: false,
+    }
+  },
   mounted() { 
+
+    var nowOnline = false
+    if (navigator.onLine) {
+      console.log("online");
+      nowOnline = true
+      this.show_Nointernet = true
+    } else {
+      console.log("offline");
+      nowOnline = false
+      this.show_Nointernet = true
+    }
+
     var SplashFadeBallSize = "vw"
     if(window.innerHeight > window.innerWidth){
       SplashFadeBallSize = "vh"
     }
-    var splashAnim = gsap.timeline({repeat: 0, repeatDelay: 1});
-    splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:0.5, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
+
+    var splashAnimEnd = gsap.timeline({repeat: 0, repeatDelay: 1, paused: true });
+    splashAnimEnd.to(this.$refs.AllSplashDrop, { duration: 0, delay:0, display: 'none'})
+    splashAnimEnd.to(this.$refs.SplashFadeBall, { duration: 0.3, delay:0, ease: "power1.in", width: 'calc(200'+ SplashFadeBallSize +' + 50px)', height: 'calc(200'+ SplashFadeBallSize +' + 50px)', bottom: '-100'+SplashFadeBallSize})
+    splashAnimEnd.to(this.$refs.SplashFadeBall, { duration: 0.1, delay:0, ease: "none", width: '110%', height: '110%', bottom: '0', borderRadius: '0'})
+    splashAnimEnd.to(this.$refs.SplashBGANDALL, { duration: 0.5, delay:0, opacity: 0})
+    splashAnimEnd.to(this.$refs.SplashBGANDALL, { duration: 0, delay:0, display: 'none'})
+
+    var splashAnim = gsap.timeline({repeat: -1, repeatDelay: 0.2});
+    splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:1.0, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
       onComplete: ()=>{
-        if(window.innerHeight > window.innerWidth){
-          SplashFadeBallSize = "vh"
+        if (!nowOnline) {
+          if(window.innerHeight > window.innerWidth){
+            SplashFadeBallSize = "vh"
+          } else {
+            SplashFadeBallSize = "vw"
+          }
+          //console.log(SplashFadeBallSize)
+
+          splashAnim.pause()
+          splashAnimEnd.play()
+          
         } else {
-          SplashFadeBallSize = "vw"
+
+          if (navigator.onLine) {
+            console.log("online");
+            nowOnline = true
+            this.show_Nointernet = true
+          }
+          
         }
-        console.log(SplashFadeBallSize)
       }})
+
     
-    splashAnim.to(this.$refs.AllSplashDrop, { duration: 0, delay:0, display: 'none'})
-    splashAnim.to(this.$refs.SplashFadeBall, { duration: 0.5, delay:0, ease: "power1.in", width: 'calc(200'+ SplashFadeBallSize +' + 50px)', height: 'calc(200'+ SplashFadeBallSize +' + 50px)', bottom: '-100'+SplashFadeBallSize})
-    splashAnim.to(this.$refs.SplashFadeBall, { duration: 0.1, delay:0, ease: "none", width: '100%', height: '100%', bottom: '0', borderRadius: '0'})
-    splashAnim.to(this.$refs.SplashBGANDALL, { duration: 0.5, delay:0, opacity: 0})
   }
 }
 
 </script>
 
 <style lang="scss">
+
+html {
+
+  overflow-y: auto !important;
+
+}
+
 .Splash-Bg {
     position: fixed;
     width: 100vw;
@@ -82,20 +129,21 @@ export default {
     justify-content: center;
     text-align: center;
     align-items: center;
+    z-index: 1000;
 }
 .Splash-Icon {
     align-self: center;
-    z-index: 3;
+    z-index: 1003;
 }
 .Splash-Text {
     position: fixed;
     bottom: 62px;
-    z-index: 1;
+    z-index: 1001;
 }
 
 .Splash-Loader {
     position: fixed;
-    z-index: 2;
+    z-index: 1002;
 }
 
 .Splash-drops {
@@ -106,7 +154,7 @@ export default {
     left:0;
     bottom:0;
     right:0;
-    z-index: 5;
+    z-index: 1005;
     opacity: 0;
     animation: fade-in .1s linear .4s forwards;
 }
@@ -121,11 +169,12 @@ export default {
     bottom: 0;
     margin: auto;
     background-color: var(--color-background);
-
+    z-index: 1000;
 }
 
 .Splash-drop2 {
   bottom: 6px;
+  z-index: 1000;
 }
 
 .Splash-drop1 {
@@ -133,14 +182,17 @@ export default {
     height: 50px;
     bottom: 9px;
     border-radius: 0;
+    z-index: 1000;
 }
 
 .Splash-dropping {
     animation: drop 1.5s cubic-bezier(.77,.04,.67,0);
+    z-index: 1000;
 }
 
 .Splash-hide {
     display: none;
+    z-index: 1000;
 }
 
 @keyframes fade-in {
@@ -171,7 +223,7 @@ export default {
 .Splash-FadeBall {
   width: 40px;
   height: 40px;
-  z-index: 4;
+  z-index: 1004;
   position: fixed;
   background-color: var(--color-background);
 
