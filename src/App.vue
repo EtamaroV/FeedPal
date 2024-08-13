@@ -4,6 +4,6 @@ import SplashScreen from './components/SplashScreen/SplashScreen.vue';
 </script>
 
 <template>
-  <!--<SplashScreen />-->
+  <SplashScreen />
   <RouterView />
 </template>
