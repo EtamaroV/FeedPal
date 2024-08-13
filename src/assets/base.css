@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500;600;700&display=swap');
+
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;
@@ -34,6 +36,9 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  --color-theme: rgb(255, 216, 79);
+  --color-theme-text: rgb(255, 187, 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,12 +55,20 @@
   }
 }
 
+
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   font-weight: normal;
+}
+
+html {
+
+  overflow-y: auto !important;
+
 }
 
 body {
@@ -79,6 +92,7 @@ body {
     'Fira Sans',
     'Droid Sans',
     'Helvetica Neue',
+    "Mitr"
     sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
