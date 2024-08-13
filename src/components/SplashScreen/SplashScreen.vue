@@ -110,13 +110,7 @@ export default {
 
 </script>
 
-<style lang="scss">
-
-html {
-
-  overflow-y: auto !important;
-
-}
+<style lang="scss" scoped>
 
 .Splash-Bg {
     position: fixed;
@@ -139,6 +133,7 @@ html {
     position: fixed;
     bottom: 62px;
     z-index: 1001;
+    fill: #222222;
 }
 
 .Splash-Loader {
