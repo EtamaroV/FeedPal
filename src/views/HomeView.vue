@@ -3,27 +3,6 @@ import TextLogo from '@/components/icons/TextLogo.vue';
 
 import mqtt from 'mqtt';
 
-const protocol = 'wss'
-const host = 'rasp.etamarov.me'
-const port = '9001'
-const path = '/mqtt'
-const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
-
-const connectUrl = `${protocol}://${host}:${port}${path}`
-
-const client = mqtt.connect(connectUrl, {
-  clientId,
-  clean: true,
-  connectTimeout: 4000,
-  username: 'feedpal',
-  password: 'FeedPal1234567',
-  reconnectPeriod: 1000,
-})
-
-client.on('connect', () => {
-  console.log('Connected')
-})
-
 </script>
 
 <template>
@@ -79,7 +58,7 @@ client.on('connect', () => {
           
             <v-btn v-if="isActiveAddNewPageNext"
               text="ปิด"
-              @click="isActiveAddNewPage = false"
+              @click="isActiveAddNewPage = false; this.mqttclient.publish(AddNewDeviceData.token + '/Device', 'HEARTBEAT');"
             ></v-btn>
 
             <v-btn v-if="!isActiveAddNewPageNext"
@@ -93,7 +72,7 @@ client.on('connect', () => {
               color="var(--color-theme-text)"
               text="ถัดไป"
               variant="tonal"
-              @click="isActiveAddNewPageNext = true; genToken(); dataStoreAddNew()"
+              @click="isActiveAddNewPageNext = true; genToken(); dataStoreAddNew();"
             ></v-btn>
 
           </v-card-actions>
@@ -106,16 +85,50 @@ client.on('connect', () => {
       <template v-slot:default>
         <v-card title="เพิ่มอุปกรณ์ที่มีอยู่">
           <v-card-text>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            <v-text-field
+              v-model="AddNewDeviceData.DeviceName"
+              label="ชื่ออุปกรณ์"
+              :rules="[AddNewDeviceData.idform.rules.required]"
+              required
+            ></v-text-field>
+
+            <v-divider></v-divider>
+            <br>
+
+            <v-text-field 
+              v-model="AddNewDeviceData.DeviceId"
+              :rules="[AddNewDeviceData.idform.rules.required, AddNewDeviceData.idform.rules.max]"
+              label="ไอดีอุปกรณ์"
+              counter="100"
+              required
+            ></v-text-field>
+            <v-text-field 
+              v-model="AddNewDeviceData.password"
+              :rules="[AddNewDeviceData.pwform.rules.required, AddNewDeviceData.pwform.rules.min]"
+              :type="AddNewDeviceData.pwform.show ? 'text' : 'password'"
+              hint="ขั้นต่ำ 8 ตัวอักษร"
+              label="รหัสผ่าน"
+              counter
+              required
+            ></v-text-field>
           </v-card-text>
         
           <v-card-actions>
             <v-spacer></v-spacer>
-          
+
             <v-btn
-              text="Close Dialog"
-              @click="isActiveAddExistPage = false; getAllDevices()"
+              text="ยกเลิก"
+              @click="isActiveAddExistPage = false"
             ></v-btn>
+
+            <v-btn
+              :disabled="(AddNewDeviceData.DeviceName.length <= 0) || (AddNewDeviceData.DeviceId.length <= 0) || (AddNewDeviceData.DeviceId.length > 100) || (AddNewDeviceData.password.length < 8)"
+              color="var(--color-theme-text)"
+              text="เพิ่ม"
+              variant="tonal"
+              @click="isActiveAddExistPage = false; genToken(); dataStoreAddNew(); this.mqttclient.publish(AddNewDeviceData.token + '/Device', 'HEARTBEAT');"
+            ></v-btn>
+            
           </v-card-actions>
         </v-card>
       </template>
@@ -143,8 +156,26 @@ client.on('connect', () => {
 
     </div>
 
-		{{Devices}}
+    <div class="list-device">
 
+      <div class="devicecard" v-for="(Device, index) in Devices">
+        <span>
+          <span>
+            <div class="device-name">{{ Device.name }}</div>
+            <div class="device-id">{{ Device.id }}</div>
+          </span>
+          <div class="device-connect">{{ Device.connected ? 'เชื่อมต่อแล้ว' : 'ไม่มีสัญญาณ' }}</div>
+        </span>
+
+        <v-btn class="device-open" :loading="Device.loading" style="width: 80px; height: 80px; border-radius: 100%;" base-color="var(--color-theme)" @click="Device.loading = true; TimeOn(Device.token)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="80%">
+            <path d="M0 192c0-35.3 28.7-64 64-64c.5 0 1.1 0 1.6 0C73 91.5 105.3 64 144 64c15 0 29 4.1 40.9 11.2C198.2 49.6 225.1 32 256 32s57.8 17.6 71.1 43.2C339 68.1 353 64 368 64c38.7 0 71 27.5 78.4 64c.5 0 1.1 0 1.6 0c35.3 0 64 28.7 64 64c0 11.7-3.1 22.6-8.6 32L8.6 224C3.1 214.6 0 203.7 0 192zm0 91.4C0 268.3 12.3 256 27.4 256l457.1 0c15.1 0 27.4 12.3 27.4 27.4c0 70.5-44.4 130.7-106.7 154.1L403.5 452c-2 16-15.6 28-31.8 28l-231.5 0c-16.1 0-29.8-12-31.8-28l-1.8-14.4C44.4 414.1 0 353.9 0 283.4z"/>
+          </svg>
+        </v-btn>
+
+      </div>
+
+    </div>
 
   </div>
   
@@ -158,13 +189,18 @@ export default {
     data() {
         return {
           db: null,
+          mqttclient: null,
           isActiveAddNewPage: false,
           isActiveAddNewPageNext: false,
           isActiveAddExistPage: false,
           items: [
-            { title: 'เพิ่มอุปกรณ์ใหม่', func: this.toggleAddNewPage },
-            { title: 'เพิ่มอุปกรณ์ที่มีอยู่', func: this.toggleAddExistPage},
+            { title: 'เพิ่มอุปกรณ์ใหม่', func: this.turnOnAddNewPage },
+            { title: 'เพิ่มอุปกรณ์ที่มีอยู่', func: this.turnOnAddExistPage},
           ],
+
+          DeviceControl: {
+            isActiveDeviceControl: false
+          },
 
 					Devices: [
 						
@@ -195,15 +231,20 @@ export default {
         }
     },
     methods: {
-        toggleAddNewPage() {
+        turnOnAddNewPage() {
           this.isActiveAddNewPage = !this.isActiveAddNewPage
           this.isActiveAddNewPageNext = false
+          this.AddNewDeviceData.DeviceName = ''
           this.AddNewDeviceData.token = ''
           this.AddNewDeviceData.DeviceId = ''
           this.AddNewDeviceData.password = ''
         },
-        toggleAddExistPage() {
+        turnOnAddExistPage() {
           this.isActiveAddExistPage = !this.isActiveAddExistPage
+          this.AddNewDeviceData.DeviceName = ''
+          this.AddNewDeviceData.token = ''
+          this.AddNewDeviceData.DeviceId = ''
+          this.AddNewDeviceData.password = ''
         },
 
         genToken() {
@@ -237,7 +278,7 @@ export default {
             });
         },
 
-        async  dataStoreAddNew() {
+        async dataStoreAddNew() {
           if (!this.db) {
             console.log("HEY")
             await this.openDB();
@@ -260,30 +301,83 @@ export default {
           transaction.onerror = (event) => {
               console.error('Transaction error:', event.target.errorCode);
           };
+
+          this.getAllDevices()
         },
 
-        getAllDevices(){
+        async getAllDevices(){
+            if (!this.db) {
+              console.log("HEY")
+              await this.openDB();
+            }
             const request = this.db.transaction('devices')
                               .objectStore('devices')
                               .openCursor();
 
-		this.Devices = []
+		        this.Devices = []
             request.onsuccess = ()=> {
                 const cursor = request.result;
             
-                if(cursor){
-                    console.log(cursor.value);
+                if (cursor) {
+                    console.log(cursor.value.token);
 										this.Devices.push(cursor.value)
+
+                    this.mqttclient.subscribe(cursor.value.token + "/Client");
+                    this.mqttclient.publish(cursor.value.token + "/Device", "HEARTBEAT");
+
                     cursor.continue();
-                }else{
+                } else {
                     console.log('No more entries')
                 }
               
             }
+        },
+
+        TimeOn(token) {
+          this.mqttclient.publish(token + "/Device", "Time_On");
         }
     },
     mounted() {
       this.openDB()
+
+      const protocol = 'wss'
+      const host = 'rasp.etamarov.me'
+      const port = '9001'
+      const path = '/mqtt'
+      const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
+
+      const connectUrl = `${protocol}://${host}:${port}${path}`
+
+      this.mqttclient = mqtt.connect(connectUrl, {
+        clientId,
+        clean: true,
+        connectTimeout: 4000,
+        username: 'feedpal',
+        password: 'FeedPal1234567',
+        reconnectPeriod: 1000,
+      })
+
+      this.mqttclient.on('connect', () => {
+        console.log('Connected')
+        
+      })
+
+      this.mqttclient.on("message", (topic, message) => {
+        // message is Buffer
+        console.log(topic + " : " + message.toString());
+
+        if (message == "HEARTBEAT") {
+          const findindex = this.Devices.findIndex(({ token }) => token === topic.replace('/Client',''))
+          this.Devices[findindex].connected = true
+        }
+        if (message == "Off") {
+          const findindex = this.Devices.findIndex(({ token }) => token === topic.replace('/Client',''))
+          this.Devices[findindex].loading = false
+        }
+      });
+
+      this.getAllDevices()
+
       
     }
 };
@@ -309,6 +403,7 @@ export default {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+
   }
   .Splash-Text {
     fill: var(--color-heading);
@@ -324,6 +419,56 @@ export default {
     justify-content: center;
     text-align: center;
     align-items: center;
+  }
+  
+  .list-device {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+  }
+
+  .devicecard {
+    background-color: var(--color-background-soft);
+    border-radius: 14px;
+    height: 125px;
+
+    padding: 10px 15px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    transition: all 100ms;
+    align-items: center;
+  }
+
+
+
+  .devicecard span {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .device-name {
+    font-size: 22px;
+    font-weight: 600;
+
+    color: var(--color-heading);
+  }
+
+  .device-id {
+    font-size: 14px;
+  }
+
+  .device-connect {
+    position: relative;
+    bottom: 0;
+
+    font-weight: 400;
+
+    font-size: 14px;
   }
 
 </style>
