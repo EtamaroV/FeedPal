@@ -143,6 +143,8 @@ client.on('connect', () => {
 
     </div>
 
+		{{Devices}}
+
 
   </div>
   
@@ -163,6 +165,10 @@ export default {
             { title: 'เพิ่มอุปกรณ์ใหม่', func: this.toggleAddNewPage },
             { title: 'เพิ่มอุปกรณ์ที่มีอยู่', func: this.toggleAddExistPage},
           ],
+
+					Devices: [
+						
+					],
 
           AddNewDeviceData: {
             DeviceName: '',
@@ -266,6 +272,7 @@ export default {
             
                 if(cursor){
                     console.log(cursor.value);
+										this.Devices.push(cursor.value)
                     cursor.continue();
                 }else{
                     console.log('No more entries')
