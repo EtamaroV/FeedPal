@@ -44,7 +44,7 @@ client.on('connect', () => {
               required
             ></v-text-field>
 
-            <v-divider></v-divider>
+            <v-divider v-if="!isActiveAddNewPageNext"></v-divider>
             <br>
 
             <small v-if="!isActiveAddNewPageNext" class="text-caption text-medium-emphasis">โปรดตั้งไอดีและรหัสผ่านให้กับอุปกรณ์ของคุณ</small>
@@ -114,7 +114,7 @@ client.on('connect', () => {
           
             <v-btn
               text="Close Dialog"
-              @click="isActiveAddExistPage = false; printStudents()"
+              @click="isActiveAddExistPage = false; getAllDevices()"
             ></v-btn>
           </v-card-actions>
         </v-card>
@@ -262,11 +262,12 @@ export default {
           };
         },
 
-        printStudents(){
+        getAllDevices(){
             const request = this.db.transaction('devices')
                               .objectStore('devices')
                               .openCursor();
 
+		this.Devices = []
             request.onsuccess = ()=> {
                 const cursor = request.result;
             
