@@ -358,8 +358,8 @@ export default {
       })
 
       this.mqttclient.on('connect', () => {
+        this.$store.state.server_connected = true
         console.log('Connected')
-        
       })
 
       this.mqttclient.on("message", (topic, message) => {

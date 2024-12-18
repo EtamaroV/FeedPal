@@ -17,7 +17,9 @@ var dropped = false
       location="top"
       style="padding-top: env(safe-area-inset-top);"
     >
-    Oops! No Internet Connection.
+    Oops! 
+    {{ nowOnline ? '' : 'No Internet Connection.'}}
+    {{ this.$store.state.server_connected ? '' : "Can't Connect To The Server."}}
     </v-snackbar>
     <div class="Splash-Bg" ref="SplashBGANDALL">
         <IconSplashLemon class="Splash-Icon" ref="SplashIcon"/>
@@ -52,6 +54,7 @@ export default {
   data() {
     return {
       show_Nointernet: false,
+      nowOnline: false
     }
   },
   mounted() { 
@@ -60,10 +63,16 @@ export default {
     if (navigator.onLine) {
       console.log("online");
       nowOnline = true
-      this.show_Nointernet = false
+      this.nowOnline = true
+
     } else {
       console.log("offline");
       nowOnline = false
+      this.nowOnline = false
+
+    }
+
+    if ((!navigator.onLine) || (!this.$store.state.server_connected)) {
       this.show_Nointernet = true
     }
 
@@ -82,7 +91,7 @@ export default {
     var splashAnim = gsap.timeline({repeat: -1, repeatDelay: 0.2});
     splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:1.0, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
       onComplete: ()=>{
-        if (nowOnline) {
+        if (nowOnline && this.$store.state.server_connected) {
           if(window.innerHeight > window.innerWidth){
             SplashFadeBallSize = "vh"
           } else {
@@ -95,7 +104,7 @@ export default {
           
         } else {
 
-          if (navigator.onLine) {
+          if (navigator.onLine && this.$store.state.server_connected) {
             console.log("online");
             nowOnline = true
             this.show_Nointernet = false
