@@ -19,7 +19,7 @@ var dropped = false
     >
     Oops! 
     {{ nowOnline ? '' : 'No Internet Connection.'}}
-    {{ this.$store.state.server_connected ? '' : "Can't Connect To The Server."}}
+    {{ $store.state.server_connected ? '' : "Can't Connect To The Server."}}
     </v-snackbar>
     <div class="Splash-Bg" ref="SplashBGANDALL">
         <IconSplashLemon class="Splash-Icon" ref="SplashIcon"/>
