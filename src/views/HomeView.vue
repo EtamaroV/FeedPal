@@ -340,7 +340,7 @@ export default {
     mounted() {
       this.openDB()
 
-      const protocol = 'wss'
+      const protocol = 'ws'
       const host = 'rasp.etamarov.me'
       const port = '9001'
       const path = '/mqtt'

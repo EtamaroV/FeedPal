@@ -18,8 +18,7 @@ var dropped = false
       style="padding-top: env(safe-area-inset-top);"
     >
     Oops! 
-    {{ nowOnline ? '' : 'No Internet Connection.'}}
-    {{ $store.state.server_connected ? '' : "Can't Connect To The Server."}}
+    {{ nowOnline ? '' : 'No Internet Connection.'}} {{ $store.state.server_connected ? '' : "Can't Connect To The Server."}}
     </v-snackbar>
     <div class="Splash-Bg" ref="SplashBGANDALL">
         <IconSplashLemon class="Splash-Icon" ref="SplashIcon"/>
@@ -60,6 +59,9 @@ export default {
   mounted() { 
 
     var nowOnline = false
+    var nowConnected = this.$store.state.server_connected
+
+    var alreadydrop = false
     if (navigator.onLine) {
       console.log("online");
       nowOnline = true
@@ -69,12 +71,9 @@ export default {
       console.log("offline");
       nowOnline = false
       this.nowOnline = false
-
     }
 
-    if ((!navigator.onLine) || (!this.$store.state.server_connected)) {
-      this.show_Nointernet = true
-    }
+
 
     var SplashFadeBallSize = "vw"
     if(window.innerHeight > window.innerWidth){
@@ -91,7 +90,7 @@ export default {
     var splashAnim = gsap.timeline({repeat: -1, repeatDelay: 0.2});
     splashAnim.to(this.$refs.SplashDrop, { duration: 1.2, delay:1.0, ease: "expo.in", bottom: 'calc( -50vh + 40px )',
       onComplete: ()=>{
-        if (nowOnline && this.$store.state.server_connected) {
+        if ((nowOnline && nowConnected && alreadydrop) || (!alreadydrop && nowOnline && this.$store.state.server_connected)) {
           if(window.innerHeight > window.innerWidth){
             SplashFadeBallSize = "vh"
           } else {
@@ -101,15 +100,26 @@ export default {
 
           splashAnim.pause()
           splashAnimEnd.play()
-          
+          this.show_Nointernet = false
         } else {
+          
+          alreadydrop = true
 
-          if (navigator.onLine && this.$store.state.server_connected) {
+          this.show_Nointernet = true 
+          
+          if (navigator.onLine && !nowOnline) {
             console.log("online");
             nowOnline = true
+          }
+          if (this.$store.state.server_connected && !nowConnected) {
+            console.log("connected");
+            nowConnected = true
+          }
+
+          if (nowOnline && nowConnected) {
             this.show_Nointernet = false
           }
-          
+
         }
       }})
 
