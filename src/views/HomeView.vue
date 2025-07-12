@@ -341,8 +341,8 @@ export default {
       this.openDB()
 
       const protocol = 'wss'
-      const host = 'rasp.etamarov.me'
-      const port = '9001'
+      const host = 'ws.feedpal.etamarov.me'
+      const port = '443'
       const path = ''
       const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
 
