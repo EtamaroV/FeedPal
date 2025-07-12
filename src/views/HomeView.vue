@@ -343,7 +343,7 @@ export default {
       const protocol = 'wss'
       const host = 'rasp.etamarov.me'
       const port = '9001'
-      const path = '/mqtt'
+      const path = ''
       const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
 
       const connectUrl = `${protocol}://${host}:${port}${path}`
